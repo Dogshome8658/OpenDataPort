@@ -77,6 +77,7 @@ void main(void){
         lprintf("And in detail is %d",errno);
         abort();
     }
+    //help
     rtnval=listen(lisener_socket,5);
     if (rtnval!=0){
         lprintf("Failed to prepare lisener\'s depedency!Yet the reply is %d\a",rtnval);

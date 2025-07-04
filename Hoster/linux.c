@@ -13,6 +13,8 @@
 
 #define SOCKET int
 
+SOCKET Responder_socket = NULL;
+
 void lprintf(const char* MSG, ...){
 	struct timespec ts;
 	timespec_get(&ts, TIME_UTC);
@@ -44,6 +46,7 @@ void bell(void){
 
 void lisener(void*psv){
     lprintf("Hereby the lisener");
+    Responder_socket=accept(lisener_socket,NULL,NULL);
     return;
 }
 
@@ -60,7 +63,13 @@ void main(void){
     //hoster_position.sin_addr.s_addr=htonl("localhost");
     hoster_position.sin_addr.s_addr=htonl(INADDR_ANY);
     //rtnval=bind(lisener_socket,(struct sockaddr *)&lisener_socket,sizeof(struct sockaddr_in));
-    rtnval=bind(lisener_socket,(struct sockaddr *)&lisener_socket,sizeof(lisener_socket));
+    rtnval=bind(lisener_socket,(struct sockaddr *)&hoster_position,sizeof(hoster_position));
+    if (rtnval!=0){
+        lprintf("Failed to prepare lisener\'s depedency!Yet the reply is %d\a",rtnval);
+        lprintf("And in detail is %d",errno);
+        abort();
+    }
+    rtnval=listen(lisener_socket,5);
     if (rtnval!=0){
         lprintf("Failed to prepare lisener\'s depedency!Yet the reply is %d\a",rtnval);
         lprintf("And in detail is %d",errno);

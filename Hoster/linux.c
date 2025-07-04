@@ -14,6 +14,7 @@
 #define SOCKET int
 
 SOCKET Responder_socket = NULL;
+SOCKET lisener_socket=NULL;
 
 void lprintf(const char* MSG, ...){
 	struct timespec ts;
@@ -44,9 +45,16 @@ void bell(void){
     return;
 }
 
-void lisener(void*psv){
+void lisener(SOCKET*psv){
     lprintf("Hereby the lisener");
+    struct sockaddr_in hoster_name;
+    getsockname(lisener_socket,(struct sockaddr_in*)&hoster_name,sizeof(hoster_name));
+    char* hoster_ip_indeed=inet_ntoa(hoster_name.sin_addr);
+    lprintf("In term of %s",hoster_ip_indeed);
+    lprintf("And I awaits");
     Responder_socket=accept(lisener_socket,NULL,NULL);
+    char text[4]="diu";
+    send(Responder_socket,&text[0],4,0);
     return;
 }
 
@@ -55,7 +63,7 @@ void main(void){
     lprintf("For any issue please report to the repositry");
     int rtnval=0;
 
-    SOCKET lisener_socket=socket(AF_INET,SOCK_STREAM,0);
+    lisener_socket=socket(AF_INET,SOCK_STREAM,0);
     struct sockaddr_in hoster_position;
     memset(&hoster_position,0,sizeof(hoster_position));
     hoster_position.sin_family=AF_INET;
@@ -72,18 +80,22 @@ void main(void){
     rtnval=listen(lisener_socket,5);
     if (rtnval!=0){
         lprintf("Failed to prepare lisener\'s depedency!Yet the reply is %d\a",rtnval);
-        lprintf("And in detail is %d",errno);
+        lprintf("with in detail is %d",errno);
         abort();
     }
     lprintf("Prepared lisener\'s depedency");
 
     pthread_t lisener_id=NULL;
-    rtnval=pthread_create(&lisener_id,NULL,lisener,NULL);
+    rtnval=pthread_create(&lisener_id,NULL,lisener,&lisener_socket);
     if(rtnval!=0){
         lprintf("Failed to create lisener!,yet the reply is %d\a",rtnval);
         lprintf("And in detail is %d",errno);
         abort();
     }
-    sleep(1);
+    {
+
+    }
+    sleep(10000);
+    abort();
     return 0;
 }

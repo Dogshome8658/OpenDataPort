@@ -9,6 +9,7 @@
 #include<sys/socket.h>
 #include<arpa/inet.h>
 #include<string.h>
+#include<errno.h>
 
 #define SOCKET int
 
@@ -49,20 +50,29 @@ void lisener(void*psv){
 void main(void){
     lprintf("OpenDataPort INDEV0.1\a");
     lprintf("For any issue please report to the repositry");
+    int rtnval=0;
 
     SOCKET lisener_socket=socket(AF_INET,SOCK_STREAM,0);
     struct sockaddr_in hoster_position;
     memset(&hoster_position,0,sizeof(hoster_position));
     hoster_position.sin_family=AF_INET;
-    hoster_position.sin_port=htons(25095);
+    hoster_position.sin_port=htons(25015);
+    //hoster_position.sin_addr.s_addr=htonl("localhost");
     hoster_position.sin_addr.s_addr=htonl(INADDR_ANY);
-    lisener_socket=bind()
+    //rtnval=bind(lisener_socket,(struct sockaddr *)&lisener_socket,sizeof(struct sockaddr_in));
+    rtnval=bind(lisener_socket,(struct sockaddr *)&lisener_socket,sizeof(lisener_socket));
+    if (rtnval!=0){
+        lprintf("Failed to prepare lisener\'s depedency!Yet the reply is %d\a",rtnval);
+        lprintf("And in detail is %d",errno);
+        abort();
+    }
     lprintf("Prepared lisener\'s depedency");
 
     pthread_t lisener_id=NULL;
-    int rtnval=pthread_create(&lisener_id,NULL,lisener,NULL);
+    rtnval=pthread_create(&lisener_id,NULL,lisener,NULL);
     if(rtnval!=0){
         lprintf("Failed to create lisener!,yet the reply is %d\a",rtnval);
+        lprintf("And in detail is %d",errno);
         abort();
     }
     sleep(1);

@@ -10,6 +10,8 @@
 #include<arpa/inet.h>
 #include<string.h>
 #include<errno.h>
+//#include <sys/manifest.h>
+//#include <sys/bsdtypes.h>
 
 #define SOCKET int
 
@@ -37,6 +39,7 @@ void lprintf(const char* MSG, ...){
 	//}else {
 	//	printf("[Thread %x][%s]: %s\n", GetCurrentThreadId(), time_buf, buf);
 	//}
+    free(buf);
     return;
 }
 
@@ -47,14 +50,22 @@ void bell(void){
 
 void lisener(SOCKET*psv){
     lprintf("Hereby the lisener");
+    int rtnval=0;
     struct sockaddr_in hoster_name;
-    getsockname(lisener_socket,(struct sockaddr_in*)&hoster_name,sizeof(hoster_name));
+    rtnval=getsockname(lisener_socket,(struct sockaddr*)&hoster_name,sizeof(struct sockaddr));
+    if(rtnval!=0){
+        lprintf("Failed to know our position!\a");
+        lprintf("Furthermore detail is %d",errno);
+        perror("getsockname");
+        abort();
+    }
     char* hoster_ip_indeed=inet_ntoa(hoster_name.sin_addr);
     lprintf("In term of %s",hoster_ip_indeed);
     lprintf("And I awaits");
     Responder_socket=accept(lisener_socket,NULL,NULL);
     char text[4]="diu";
     send(Responder_socket,&text[0],4,0);
+    exit(0);
     return;
 }
 
@@ -62,15 +73,19 @@ void main(void){
     lprintf("OpenDataPort INDEV0.1\a");
     lprintf("For any issue please report to the repositry");
     int rtnval=0;
-
-    lisener_socket=socket(AF_INET,SOCK_STREAM,0);
+    lisener_socket=socket(AF_INET,SOCK_STREAM,IPPROTO_TCP);
+    rtnval=lisener_socket;
+    if(lisener_socket==-1){
+        lprintf("Failed to prepare lisener\'s depedency!Yet the reply is %d\a",rtnval);
+        lprintf("moreover the detail is %d",errno);
+        abort();
+    }
     struct sockaddr_in hoster_position;
     memset(&hoster_position,0,sizeof(hoster_position));
     hoster_position.sin_family=AF_INET;
     hoster_position.sin_port=htons(25015);
     //hoster_position.sin_addr.s_addr=htonl("localhost");
     hoster_position.sin_addr.s_addr=htonl(INADDR_ANY);
-    //rtnval=bind(lisener_socket,(struct sockaddr *)&lisener_socket,sizeof(struct sockaddr_in));
     rtnval=bind(lisener_socket,(struct sockaddr *)&hoster_position,sizeof(hoster_position));
     if (rtnval!=0){
         lprintf("Failed to prepare lisener\'s depedency!Yet the reply is %d\a",rtnval);
@@ -81,7 +96,7 @@ void main(void){
     rtnval=listen(lisener_socket,5);
     if (rtnval!=0){
         lprintf("Failed to prepare lisener\'s depedency!Yet the reply is %d\a",rtnval);
-        lprintf("with in detail is %d",errno);
+        lprintf("With in detail is %d",errno);
         abort();
     }
     lprintf("Prepared lisener\'s depedency");
@@ -92,9 +107,6 @@ void main(void){
         lprintf("Failed to create lisener!,yet the reply is %d\a",rtnval);
         lprintf("And in detail is %d",errno);
         abort();
-    }
-    {
-
     }
     sleep(10000);
     abort();
